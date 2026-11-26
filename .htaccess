@@ -1,0 +1,4 @@
+# Never serve secrets or env files
+<FilesMatch "^(\.env.*|config\.js|serve\.js)$">
+  Require all denied
+</FilesMatch>

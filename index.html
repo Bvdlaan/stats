@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Macro data lookup</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="titleblock">
+      <p class="eyebrow">Central bank &amp; statistics data</p>
+      <h1>Macro data lookup</h1>
+      <p class="sub">Search rates, FX and inflation from ECB, Norges Bank, Riksbank, SSB, SCB, Eurostat, Bundesbank, SNB, NBP, GUS and ONS. Get a chart and a table you can copy into Excel.</p>
+    </div>
+    <div class="balance" aria-live="polite">
+      <p class="label" id="heroLabel">No series loaded</p>
+      <p class="value" id="heroValue">–</p>
+      <span class="pill" id="heroDate">Pick a source below</span>
+    </div>
+  </div>
+  <div class="wrap"><nav id="tabs" class="actions-row" role="tablist" aria-label="Data source"></nav></div>
+</header>
+<div class="sheet">
+<section class="card ask" aria-label="Ask a question">
+  <div class="askrow">
+    <input id="askq" placeholder="Ask for data, e.g. compare Dutch inflation with Norway since 2022" autocomplete="off">
+    <select id="askscope" aria-label="Source for questions" title="Which source the question may use"></select>
+    <button class="btn" id="askgo">Ask</button>
+  </div>
+  <div class="chips" id="askex"></div>
+  <details id="aiset">
+    <summary>AI settings</summary>
+    <div class="aigrid">
+      <div><label for="aiprov">AI provider</label>
+        <select id="aiprov"><option value="mistral">Mistral model</option><option value="agent">Mistral agent</option><option value="anthropic">Claude (Anthropic)</option></select></div>
+      <div data-for="mistral agent"><label for="mkey">Mistral API key</label><input id="mkey" type="password" autocomplete="off"></div>
+      <div data-for="mistral"><label for="mmodel">Mistral model</label>
+        <select id="mmodel"><option>mistral-large-latest</option><option>mistral-medium-latest</option><option>mistral-small-latest</option></select></div>
+      <div data-for="agent"><label for="magent">Agent ID</label><input id="magent" placeholder="ag_…" autocomplete="off"></div>
+      <div data-for="anthropic"><label for="akey">Anthropic API key</label><input id="akey" type="password" autocomplete="off"></div>
+      <div data-for="anthropic"><label for="amodel">Claude model</label>
+        <select id="amodel"><option>claude-sonnet-5-5</option><option>claude-haiku-5-5</option><option>claude-opus-5-5</option></select></div>
+      <div><label for="ailens">How to read questions</label>
+        <select id="ailens"><option value="cb">As an FX analyst (central bank measures)</option><option value="literal">Literally as asked</option></select></div>
+      <div><label for="aisum">Written answer</label>
+        <select id="aisum"><option value="yes">Add a short answer to the chart</option><option value="no">Chart and table only</option></select></div>
+    </div>
+    <p class="hint">Keys stay in this browser only. You can also put them in config.js in this folder. For a Mistral agent, paste the agent instructions into the agent in Mistral’s console: <a href="#" id="copyinstr">copy agent instructions</a>.</p>
+  </details>
+</section>
+<main>
+  <section id="side">
+    <div class="card" id="form"></div>
+    <div class="card" id="favs"></div>
+  </section>
+  <section id="result">
+    <div id="status" class="status" role="status"></div>
+    <div id="output">
+      <div class="card empty">
+        <span class="ico" aria-hidden="true">∿</span>
+        <div><h2>Pick a series to see it here</h2>
+        <p>Choose a source above, then a preset or your own series code. You get a chart and a table you can copy into Excel or download as CSV.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+</div>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
