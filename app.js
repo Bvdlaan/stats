@@ -894,7 +894,7 @@ function initAI(){
   const s = aiSettings();
   for(const k in AI_FIELDS){ const el = $('#'+k); el.value = s[k]; el.onchange = () => { store.set('ai.'+k, el.value.trim()); showAIFields(); }; }
   showAIFields();
-  $('#askscope').innerHTML = `<option value="auto">Best source</option>` + Object.entries(SOURCES).map(([id,s]) => `<option value="${id}">Only ${esc(s.label)}</option>`).join('');
+  $('#askscope').innerHTML = `<option value="auto">Best source (national first)</option><option value="national">National sources only (no Eurostat)</option><option value="nordic">Norway + Sweden (SSB, Norges Bank, SCB, Riksbank)</option>` + Object.entries(SOURCES).map(([id,s]) => `<option value="${id}">Only ${esc(s.label)}</option>`).join('');
   const ex = ['Give me GDP for Sweden','Compare Dutch CPI to Norway','EUR/SEK and EUR/NOK over the last 3 years','UK CPI vs core CPI since 2021','Unemployment in the Netherlands, Sweden and Norway','Riksbank vs Norges Bank policy rate'];
   $('#askex').innerHTML = ex.map(e => `<button class="chip" type="button">${esc(e)}</button>`).join('');
   $('#askex').querySelectorAll('button').forEach(b => b.onclick = () => { $('#askq').value = b.textContent; runAsk(); });
@@ -907,6 +907,11 @@ function showAIFields(){
   document.querySelectorAll('#aiset [data-for]').forEach(el => el.style.display = el.dataset.for.split(' ').includes(p) ? '' : 'none');
 }
 
+function scopeRule(scope){
+  if(scope === 'national') return 'use only national statistics offices and central banks ("ssb","nb","scb","rb","gus","nbp","snb","ons","bbk","ecb"), never "estat".';
+  if(scope === 'nordic') return 'use only "ssb" and "nb" for Norway and "scb" and "rb" for Sweden. Several of these sources may be used in one plan.';
+  return `use only source "${scope}" (${SOURCES[scope].label}).`;
+}
 function plannerPrompt(){
   return `You turn questions about macroeconomic data into a JSON retrieval plan for a data tool. Today is ${today()}.
 Reply with JSON only, no prose, in this shape:
@@ -922,7 +927,7 @@ CHOOSING THE SOURCE
   Switzerland: "snb" for the policy rate, SARON, CHF exchange rates, bond yields and CPI.
   United Kingdom: "ons". Euro area aggregates and EUR exchange rates: "ecb".
   Countries without their own source here (e.g. Netherlands, France, Italy): "estat".
-- Only a comparison of two or more European countries uses "estat", so definitions match. The UK is not in Eurostat after 2020, so for the UK always use "ons", even in comparisons.
+- ALWAYS prefer each country's own national sources, also when comparing countries, because Eurostat is published with a delay. A comparison of Norway and Sweden uses "ssb"/"nb" for Norway and "scb"/"rb" for Sweden, one query per country, never "estat". Mention in "note" if definitions differ between the national sources. Use "estat" only for a country that has no national source here, or when the user explicitly asks for Eurostat or for harmonised (HICP) comparisons.
 - If the message contains a SOURCE RESTRICTION line, use only that source. If it can't answer, return {"title":"","queries":[],"note":"short explanation"}.
 
 QUERY SHAPES
@@ -1024,7 +1029,7 @@ async function runAsk(){
   try{
     status('Working out which data to fetch…');
     const scope = $('#askscope').value;
-    const plan = parseJSONLoose(await callAI(plannerPrompt(), scope === 'auto' ? q : `${q}\n\nSOURCE RESTRICTION: use only source "${scope}" (${SOURCES[scope].label}).`, true));
+    const plan = parseJSONLoose(await callAI(plannerPrompt(), scope === 'auto' ? q : `${q}\n\nSOURCE RESTRICTION: ${scopeRule(scope)}`, true));
     if(!plan.queries || !plan.queries.length) throw new Error(plan.note || 'The AI couldn’t map this question to the available sources. Try rephrasing it.');
     let series = [], used = [], failed = [], firstUrl = '';
     for(let [i, spec] of plan.queries.slice(0,6).entries()){
