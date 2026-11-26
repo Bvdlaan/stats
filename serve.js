@@ -13,6 +13,6 @@ http.createServer((req, res) => {
     return;
   }
   const f = path.join(__dirname, u.pathname === '/' ? 'index.html' : path.normalize(u.pathname).replace(/^(\.\.[/\\])+/, ''));
-  if (!f.startsWith(__dirname) || /\/\.|serve\.js$/.test(f)) { res.writeHead(403); return res.end(); }
+  if (!f.startsWith(__dirname) || /\/\.|serve\.js|serve\.py|start\./.test(f)) { res.writeHead(403); return res.end(); }
   fs.readFile(f, (e, d) => { if (e) { res.writeHead(404); return res.end('Not found'); } res.writeHead(200, { 'Content-Type': types[path.extname(f)] || 'application/octet-stream' }); res.end(d); });
 }).listen(8080, () => console.log('Open http://localhost:8080'));

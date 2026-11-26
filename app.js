@@ -100,9 +100,9 @@ async function getJSON(url, headers = {}){
   if(cache.has(url)) return cache.get(url);
   let r;
   try{ r = await fetch(url, {headers:{Accept:'application/json', ...headers}}); }
-  catch(e){ throw new Error(`No response from ${new URL(url).host}. Either you’re offline, the network blocks it, or the API refuses browser requests (CORS). Open the request link below in a new tab to check.`); }
-  if(r.status===429) throw new Error(`${new URL(url).host} says too many requests. Wait a minute and try again${url.includes('riksbank')?' (without a key the Riksbank allows 5 calls per minute)':''}.`);
-  if(!r.ok){ let t=''; try{ t=(await r.text()).slice(0,200); }catch(e){} throw new Error(`HTTP ${r.status} from ${new URL(url).host}. ${t}`); }
+  catch(e){ throw new Error(`No response from ${new URL(url, location.href).host || 'the server'}. Either you’re offline, the network blocks it, or the API refuses browser requests (CORS). Open the request link below in a new tab to check.`); }
+  if(r.status===429) throw new Error(`${new URL(url, location.href).host} says too many requests. Wait a minute and try again${url.includes('riksbank')?' (without a key the Riksbank allows 5 calls per minute)':''}.`);
+  if(!r.ok){ let t=''; try{ t=(await r.text()).slice(0,200); }catch(e){} throw new Error(`HTTP ${r.status} from ${new URL(url, location.href).host}. ${t}`); }
   const j = await r.json();
   cache.set(url, j);
   return j;
@@ -689,12 +689,12 @@ async function fetchSnb(cube, start, filter){
   if(!/^[a-z0-9_]+$/.test(cube)) throw new Error('Cube IDs only contain letters, digits and underscores.');
   start = start ? start.slice(0,7) : yearsAgo(3).slice(0,7);
   const path = `/${cube}/data/json/en?fromDate=${start}`;
-  const proxy = CFG.snbProxy;
-  const url = proxy ? `${proxy}?p=${encodeURIComponent(path)}` : SOURCES.snb.base + path;
+  const viaProxy = !!CFG.snbProxy && /^https?:$/.test(location.protocol);
+  const url = viaProxy ? `${CFG.snbProxy}?p=${encodeURIComponent(path)}` : SOURCES.snb.base + path;
   let j;
   try{ j = await getJSON(url); }
   catch(e){
-    if(!proxy && /No response from/.test(e.message)) throw new Error('The SNB data portal refuses direct browser requests (no CORS). Start the page with “node serve.js” in this folder, or host snb-proxy.php and set snbProxy in config.js.');
+    if(!viaProxy || /No response|HTTP (404|405|501)/.test(e.message)) throw new Error('SNB blocks direct browser requests, so it needs the small local server. Start the app with start.command (Mac), start.bat (Windows) or “node serve.js” / “python3 serve.py”, then open http://localhost:8080. On a host without PHP (such as GitHub Pages) SNB is not available.');
     throw e;
   }
   const f = (filter || '').toLowerCase();
