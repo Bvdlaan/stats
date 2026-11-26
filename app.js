@@ -689,12 +689,12 @@ async function fetchSnb(cube, start, filter){
   if(!/^[a-z0-9_]+$/.test(cube)) throw new Error('Cube IDs only contain letters, digits and underscores.');
   start = start ? start.slice(0,7) : yearsAgo(3).slice(0,7);
   const path = `/${cube}/data/json/en?fromDate=${start}`;
-  const viaProxy = !!CFG.snbProxy && /^https?:$/.test(location.protocol);
+  const viaProxy = !!CFG.snbProxy && (/^https?:\/\//i.test(CFG.snbProxy) || /^https?:$/.test(location.protocol));
   const url = viaProxy ? `${CFG.snbProxy}?p=${encodeURIComponent(path)}` : SOURCES.snb.base + path;
   let j;
   try{ j = await getJSON(url); }
   catch(e){
-    if(!viaProxy || /No response|HTTP (404|405|501)/.test(e.message)) throw new Error('SNB blocks direct browser requests, so it needs the small local server. Start the app with start.command (Mac), start.bat (Windows) or “node serve.js” / “python3 serve.py”, then open http://localhost:8080. On a host without PHP (such as GitHub Pages) SNB is not available.');
+    if(!viaProxy || /No response|HTTP (404|405|501)/.test(e.message)) throw new Error('SNB blocks direct browser requests. Set snbProxy in config.js to your Cloudflare Worker address (see cloudflare/snb-worker.js), or start the local server with start.command (Mac), start.bat (Windows) or “node serve.js” / “python3 serve.py”, then open http://localhost:8080. On a host without PHP (such as GitHub Pages) SNB is not available.');
     throw e;
   }
   const f = (filter || '').toLowerCase();

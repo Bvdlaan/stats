@@ -7,7 +7,7 @@ window.MDL_CONFIG = {
   anthropicKey: '',
   anthropicModel: '',
   riksbankKey: '',
-  snbProxy: 'snb-proxy.php',  // needed for SNB (node serve.js locally, snb-proxy.php when hosted)
+  snbProxy: 'snb-proxy.php',  // SNB needs a proxy. Local server: leave as is. No install: your Cloudflare Worker address, e.g. 'https://snb.yourname.workers.dev'
   gusProxy: '',          // 'gus-proxy.php' when hosted, key then lives in a .env above the web root
   gusKey: ''             // GUS DBW key, only for local use
 };
